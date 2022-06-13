@@ -65,7 +65,7 @@ def summarize_by_ipv4(sortby:SortBy):
                    f'<td> {host.latitude} </td><td> {host.longitude} </td><td>{ rec_cnt }</td> </tr> \n'
                 out.write(line)
 
-        out.write('<tbody></table></body></html>')
+        out.write('</tbody></table></body></html>')
 
     dal.session.close()
 
