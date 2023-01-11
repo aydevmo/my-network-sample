@@ -9,3 +9,4 @@ python/log_processing_01/backup/step01_parse_log.py.bak2
 python/log_processing_01/cisco-2021-0621a.log
 python/log_processing_01/__pycache__/db.cpython-39.pyc
 python/log_processing_01/geolite2/GeoLite2-City.mmdb
+
