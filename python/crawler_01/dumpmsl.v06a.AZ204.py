@@ -3,7 +3,7 @@
 #      https://learn.microsoft.com/en-us/legal/termsofuse
 #Note: This script writes to a file named tocsafewrite.htm in the end. That's the table of contents portion. 
 #      This script also prints content on screen. The user needs to redirect the content to a file using shell features. 
-#      Then combine the above two parts.
+#      Then combine the above two parts.  
 
 from urllib import request, parse
 import re
