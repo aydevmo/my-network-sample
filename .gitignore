@@ -1,12 +1,7 @@
 .venv/
 venv/
-python/log_processing_01/backup/cisco-2021-0625.log
-python/log_processing_01/backup/cisco-2021-0625.log.bak
-python/log_processing_01/backup/db.py.bak1
-python/log_processing_01/backup/db.py.bak2
-python/log_processing_01/backup/parse_log.py.bak1
-python/log_processing_01/backup/step01_parse_log.py.bak2
+python/log_processing_01/backup/
 python/log_processing_01/cisco-2021-0621a.log
-python/log_processing_01/__pycache__/db.cpython-39.pyc
+python/log_processing_01/__pycache__/
 python/log_processing_01/geolite2/GeoLite2-City.mmdb
 
