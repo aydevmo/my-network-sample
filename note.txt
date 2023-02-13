@@ -1,0 +1,7 @@
+https://code.visualstudio.com/docs/python/environments
+
+Create Python virtual environment in my-network-sample directory. 
+
+C:\_vscode\my-network-sample> python -m venv .venv
+
+C:\_vscode\my-network-sample> .\.venv\Scripts\activate
