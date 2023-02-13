@@ -5,3 +5,8 @@ Create Python virtual environment in my-network-sample directory.
 C:\_vscode\my-network-sample> python -m venv .venv
 
 C:\_vscode\my-network-sample> .\.venv\Scripts\activate
+
+
+See also:
+https://jupyter.org/install
+
