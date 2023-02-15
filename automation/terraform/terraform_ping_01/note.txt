@@ -16,7 +16,7 @@ https://stackoverflow.com/questions/46991117/aws-python-lambda-functionno-module
 
 https://stackoverflow.com/questions/58445984/python-at-aws-lambda-requests-from-botocore-vendored-deprecated-but-request
 
-pip install --target ./package requests
+    pip install --target ./package requests
 
 https://docs.aws.amazon.com/lambda/latest/dg/urls-configuration.html
 
@@ -29,4 +29,10 @@ https://github.com/awsdocs/aws-doc-sdk-examples/tree/main/python/example_code/la
 https://stackoverflow.com/questions/39456309/using-boto-to-invoke-lambda-functions-how-do-i-do-so-asynchronously
 
 https://stackoverflow.com/questions/43294802/lambda-return-payload-botocore-response-streamingbody-object-prints-but-then-emp
+
+https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/lambda.html#Lambda.Client.invoke
+
+https://stackoverflow.com/questions/48250426/invoke-an-aws-lambda-across-regions
+
+    client = boto3.client('lambda', region_name='us-west-2')
 
