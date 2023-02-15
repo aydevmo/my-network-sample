@@ -4,7 +4,7 @@ import json
 def lambda_handler(event, context): 
 
     max = 0
-    min = 1000
+    min = 9999
     total = 0
     avg = 0
     samples = 5
@@ -15,7 +15,7 @@ def lambda_handler(event, context):
     for i in range(samples):
         
         response = requests.head(url)
-        mark = response.elapsed.total_seconds() * 1000
+        mark = response.elapsed.total_seconds()
 
         if mark > max:
             max = mark
@@ -29,6 +29,10 @@ def lambda_handler(event, context):
 
     avg = total / samples
 
+    max *= 1000
+    min *= 1000
+    avg *= 1000
+    
     result = { "statusCode": 200, "message": "OK",
             'min': str(min), 'max': str(max), 'avg': str(avg),
             'host': url, 'whoami':whoami }
