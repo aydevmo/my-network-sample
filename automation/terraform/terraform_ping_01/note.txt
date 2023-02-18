@@ -36,3 +36,7 @@ https://stackoverflow.com/questions/48250426/invoke-an-aws-lambda-across-regions
 
     client = boto3.client('lambda', region_name='us-west-2')
 
+https://stackoverflow.com/questions/36784925/how-to-get-return-response-from-aws-lambda-function
+
+https://www.paepper.com/blog/posts/parsing-json-data-from-aws-lambda-functions-in-python/
+
