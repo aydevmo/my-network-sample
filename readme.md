@@ -1,5 +1,11 @@
 Please see my recent Python sample at below, which processes Cisco ASA log, inserts location information, and performs data analysis in Jupyter Notebook.   
-<https://github.com/aydevmo/my-network-sample/tree/main/python/log_processing_01>
+<a href="https://github.com/aydevmo/my-network-sample/tree/main/python/log_processing_01" target="_blank">
+Python Log Processing and Threat Analysis </a>    
+   
+Click the link below to see my Terraform sample.    
+<a href="https://github.com/aydevmo/my-network-sample/tree/main/automation/terraform/terraform_ping_01" target="_blank"> 
+HTTP Head Latency Test with AWS Lambda and Terraform </a>    
    
 My ASP.NET WebForm sample is listed below.   
-<https://github.com/aydevmo/ALifeNews2023>
+<a href="https://github.com/aydevmo/ALifeNews2023" target="_blank">
+ALifeNews2023 </a>    
