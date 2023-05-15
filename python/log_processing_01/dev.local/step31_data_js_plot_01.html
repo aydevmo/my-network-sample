@@ -1,0 +1,36 @@
+<!-- Reference: https://github.com/sql-js/sql.js/blob/master/examples/repl.html  -->
+<!doctype html>
+<html>
+
+<head>
+	<meta charset="utf8">
+	<title>SQL REPL</title>
+	<script src="../sql.js/dist/sql-wasm.js"></script>
+</head>
+
+<body>
+	<pre id='result'></pre>
+	<pre id='error'></pre>
+	<script>
+
+async function main(){
+    var sqlPromise = initSqlJs({
+    locateFile: file => `http://localhost:8000/python/log_processing_01/sql.js/dist/${file}`
+    });
+    var dataPromise = fetch("http://localhost:8000/python/log_processing_01/aydevmo_net_log_01.db").then(res => res.arrayBuffer());
+    var [SQL, buf] = await Promise.all([sqlPromise, dataPromise])
+    var db = new SQL.Database(new Uint8Array(buf));
+
+    //var sql = 'SELECT * FROM hosts limit 5';
+    var sql = 'select * from log_records join hosts on log_records.source = hosts.ipv4_id limit 100'
+    var result = '', error = '';
+	try { result = db.exec(sql); }
+	catch (e) { error = e; }
+    document.getElementById('result').innerHTML = JSON.stringify(result, null, '  ');
+	document.getElementById('error').innerHTML = error;
+}
+
+main();
+
+	</script>
+</body>

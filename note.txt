@@ -6,7 +6,8 @@ C:\_vscode\my-network-sample> python -m venv .venv
 
 C:\_vscode\my-network-sample> .\.venv\Scripts\activate
 
+To test with sql.js locally, run the simple web server as below:
+    python -m http.server
 
 See also:
 https://jupyter.org/install
-
