@@ -1,0 +1,95 @@
+<!doctype html>
+<html>
+
+<head>
+	<meta charset="utf8">
+	<title>Scatter Chart Replay</title>
+	<script src="../sql.js/dist/sql-wasm.js"></script>
+    <script src="../include/d3.js/d3.v7.min.js"></script>
+</head>
+
+<body>
+    <h3>Scatter Chart Replay</h3>
+    <br><br>
+    <div id="board"></div>
+	<pre id='result'></pre>
+	<pre id='error'></pre>
+
+
+
+
+
+	<script>
+"use strict";
+const _logId = 0, _createdOn = 1, _logNum = 2, _protocol = 3, _source = 4;
+const _dest = 5, _destPort = 6, _occur = 7, _minutes = 8, _ipv4Id = 9;
+const _ipv4Str = 10, _hostname = 11, _latitude = 12, _longitude = 13, _countryCode = 14;
+const _country = 15, _city = 16;
+const _width = 800, _height= 400;
+
+var db;
+var svg;
+var result = '', error = '';
+var dataPts;
+
+async function loadDB(){
+    var sqlPromise = initSqlJs({
+    locateFile: file => `http://localhost:8000/python/log_processing_01/sql.js/dist/${file}`
+    });
+    var dataPromise = fetch("http://localhost:8000/python/log_processing_01/aydevmo_net_log_01.db").then(res => res.arrayBuffer());
+    var [SQL, buf] = await Promise.all([sqlPromise, dataPromise])
+    db = new SQL.Database(new Uint8Array(buf));
+
+    var sql = "select *, CAST(strftime('%s', created_on) AS INT) AS dt_int from log_records join hosts on log_records.source = hosts.ipv4_id limit 20";
+    
+	try { result = db.exec(sql); }
+	catch (e) { error = e; }
+    dataPts = result[0]['values'];
+    //document.getElementById('result').innerHTML = JSON.stringify(dataPts, null, '  ');
+    //document.getElementById('result').innerHTML = JSON.stringify(result[0]['values'], null, '  ');
+    //document.getElementById('result').innerHTML += "<br><br>";
+    //document.getElementById('result').innerHTML += JSON.stringify(result, null, '  ');
+    
+	document.getElementById('error').innerHTML = error;
+}
+
+function drawPlot(){
+    svg = d3.select("#board")
+            .append("svg")
+            .attr("width", _width)
+            .attr("height", _height);
+
+    svg.selectAll("circle")
+        .data(dataPts)
+        .enter()
+        .append("circle")
+        .attr("cx", function(d){return d[_logId]*20})
+        .attr("cy", function(d){return d[_logId]*20})
+        .attr("r", 7)
+        .attr("fill",function(d){return ipv4IntToColor(d[_ipv4Id])});
+    
+        svg.selectAll("text")
+        .data(dataPts)
+        .enter()
+        .append("text")
+        .attr("x", function(d){return d[_logId]*20})
+        .attr("y", function(d){return d[_logId]*20})
+        .text(function(d){return d[_ipv4Str]});
+    
+}
+
+function ipv4IntToColor(ipv4Int){
+    return( '#' + (Number(ipv4Int) >>> 8).toString(16) );
+}
+
+async function main(){
+    await loadDB();
+    drawPlot();
+    //document.getElementById('result').innerHTML = JSON.stringify(dataPts, null, '  ');
+    document.getElementById('result').innerHTML = JSON.stringify(result, null, '  ');
+}
+
+main();
+
+	</script>
+</body>

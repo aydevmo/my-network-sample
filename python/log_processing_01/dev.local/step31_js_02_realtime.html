@@ -14,13 +14,15 @@
 	<pre id='error'></pre>
 	<script>
 
+var db;
+
 async function main(){
     var sqlPromise = initSqlJs({
     locateFile: file => `http://localhost:8000/python/log_processing_01/sql.js/dist/${file}`
     });
     var dataPromise = fetch("http://localhost:8000/python/log_processing_01/aydevmo_net_log_01.db").then(res => res.arrayBuffer());
     var [SQL, buf] = await Promise.all([sqlPromise, dataPromise])
-    var db = new SQL.Database(new Uint8Array(buf));
+    db = new SQL.Database(new Uint8Array(buf));
 
     var sql = 'select * from log_records join hosts on log_records.source = hosts.ipv4_id limit 100';
     var result = '', error = '';
