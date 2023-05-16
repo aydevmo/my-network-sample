@@ -1,3 +1,7 @@
+Try this realtime SQL query:
+<a href="https://aydevmo.github.io/my-network-sample/python/log_processing_01/step31_js_01_realtime_sql_query.html" target="_blank">
+Realtime SQL query powered by sql.js</a>
+   
 Please see my recent Python sample at below, which processes Cisco ASA log, inserts location information, and performs data analysis in Jupyter Notebook.   
 <a href="https://github.com/aydevmo/my-network-sample/tree/main/python/log_processing_01" target="_blank">
 Python Log Processing and Threat Analysis </a>    
