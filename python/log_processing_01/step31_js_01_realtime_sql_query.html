@@ -5,7 +5,7 @@
 <head>
 	<meta charset="utf8">
 	<title>SQL Realtime Query</title>
-	<script src="sql.js/dist/sql-wasm.js"></script>
+	<script src="sql.js/dist/sql-wasm-debug.js"></script>
 </head>
 
 <body bgcolor="#c0c0c0">
@@ -24,7 +24,7 @@ var db;
 
 async function main(){
     var sqlPromise = initSqlJs({
-    locateFile: file => `https://aydevmo.github.io/my-network-sample/python/log_processing_01/sql.js/dist/sql-wasm.js`
+    locateFile: file => `https://aydevmo.github.io/my-network-sample/python/log_processing_01/sql.js/dist/${file}`
     });
     var dataPromise = fetch("https://aydevmo.github.io/my-network-sample/python/log_processing_01/aydevmo_net_log_01.db").then(res => res.arrayBuffer());
     var [SQL, buf] = await Promise.all([sqlPromise, dataPromise])
