@@ -1,0 +1,45 @@
+<!-- Reference: https://github.com/sql-js/sql.js/blob/master/examples/repl.html  -->
+<!doctype html>
+<html>
+
+<head>
+	<meta charset="utf8">
+	<title>SQL Realtime Query</title>
+	<script src="../sql.js/dist/sql-wasm.js"></script>
+</head>
+
+<body bgcolor="#c0c0c0">
+    Reference: <a href="https://github.com/sql-js/sql.js/blob/master/examples/repl.html" target="_new">
+        https://github.com/sql-js/sql.js/blob/master/examples/repl.html
+    </a><br><br>
+	<input type='text' id='input' size='100'
+		value="select * from log_records join hosts on log_records.source = hosts.ipv4_id limit 100">
+	<button id='submit'>Execute</button>
+	<pre id='result'></pre>
+	<pre id='error'></pre>
+	
+	<script>
+
+var db;
+
+async function main(){
+    var sqlPromise = initSqlJs({
+    locateFile: file => `https://raw.githubusercontent.com/aydevmo/my-network-sample/main/python/log_processing_01/sql.js/dist/sql-wasm.js`
+    });
+    var dataPromise = fetch("https://raw.githubusercontent.com/aydevmo/my-network-sample/main/python/log_processing_01/aydevmo_net_log_01.db").then(res => res.arrayBuffer());
+    var [SQL, buf] = await Promise.all([sqlPromise, dataPromise])
+    db = new SQL.Database(new Uint8Array(buf));
+}
+
+main();
+
+document.getElementById('submit').onclick = function () {
+		var sql = document.getElementById('input').value;
+		var result = '', error = '';
+		try { result = db.exec(sql); }
+		catch (e) { error = e; }
+		document.getElementById('result').innerHTML = JSON.stringify(result, null, '  ');
+		document.getElementById('error').innerHTML = error;
+	};
+	</script>
+</body>
