@@ -1,4 +1,4 @@
-Try this realtime SQL query:
+Try this realtime SQL query:   
 <a href="https://aydevmo.github.io/my-network-sample/python/log_processing_01/step31_js_01_realtime_sql_query.html" target="_blank">
 Realtime SQL query powered by sql.js</a>
    
