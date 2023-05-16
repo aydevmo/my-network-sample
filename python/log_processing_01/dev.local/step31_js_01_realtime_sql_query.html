@@ -4,7 +4,7 @@
 
 <head>
 	<meta charset="utf8">
-	<title>SQL Realtime Query</title>
+	<title>Live SQL Query</title>
 	<script src="../sql.js/dist/sql-wasm.js"></script>
 </head>
 
@@ -12,8 +12,9 @@
     Reference: <a href="https://github.com/sql-js/sql.js/blob/master/examples/repl.html" target="_new">
         https://github.com/sql-js/sql.js/blob/master/examples/repl.html
     </a><br><br>
-	<input type='text' id='input' size='50'
+	<input type='text' id='input' size='70'
 		value="select * from log_records join hosts on log_records.source = hosts.ipv4_id limit 100">
+	<br>
 	<button id='submit'>Execute</button>
 	<pre id='result'></pre>
 	<pre id='error'></pre>
