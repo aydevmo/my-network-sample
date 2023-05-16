@@ -24,9 +24,9 @@ var db;
 
 async function main(){
     var sqlPromise = initSqlJs({
-    locateFile: file => `https://raw.githubusercontent.com/aydevmo/my-network-sample/main/python/log_processing_01/sql.js/dist/sql-wasm.js`
+    locateFile: file => `https://aydevmo.github.io/my-network-sample/python/log_processing_01/sql.js/dist/sql-wasm.js`
     });
-    var dataPromise = fetch("https://raw.githubusercontent.com/aydevmo/my-network-sample/main/python/log_processing_01/aydevmo_net_log_01.db").then(res => res.arrayBuffer());
+    var dataPromise = fetch("https://aydevmo.github.io/my-network-sample/python/log_processing_01/aydevmo_net_log_01.db").then(res => res.arrayBuffer());
     var [SQL, buf] = await Promise.all([sqlPromise, dataPromise])
     db = new SQL.Database(new Uint8Array(buf));
 }
