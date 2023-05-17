@@ -42,7 +42,7 @@ const _country = 15, _city = 16, _dtInt = 17;
 const _width = 800, _height = 400, _radius = 10;
 const _interval = 5; //seconds
 const _x = 0, _y = 1, _data = 2;
-const _numPoints = 100;
+const _numPoints = 50;
 
 var db;
 var svg;
@@ -200,8 +200,8 @@ function updatePlot() {
         nowTime = new Date(nowTime.getTime() + timeSpanPerUpdate);
         lookback = new Date(nowTime.getTime() - lookback_s * 1000);
 
-        while( dataPts[ptIndex + 1][_dtInt] * 1000 <= nowTime.getTime() &&
-            ( ptIndex + 1 < _numPoints ) ){   //max index is length minus one
+        while(( ptIndex + 1 < _numPoints ) &&  //Max index is length minus one. Check this first.
+            dataPts[ptIndex + 1][_dtInt] * 1000 <= nowTime.getTime() ){   
             ptIndex++;
             // Add points to buffer
             lastPoint = ipv4GetLeadOctal(dataPts[ptIndex][_ipv4Id]);
@@ -214,7 +214,7 @@ function updatePlot() {
         document.getElementById('timebox').innerHTML = 'Time: ' + nowTime.toUTCString();
         document.getElementById('error').innerHTML = 'buffer length: ' + dataBuf.length;
     }
-    if(ptIndex > 50){clearInterval(myIntervalStub);}
+    if(ptIndex + 1 >= _numPoints){clearInterval(myIntervalStub);}
 }
 
 function initDrawing(){
