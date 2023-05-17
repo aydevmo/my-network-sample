@@ -53,8 +53,7 @@ var isPaused = false;
 function togglePause(){
     isPaused = !isPaused;
     let hint;
-    if(isPaused){hint = "Resume";}
-    else{hint = "Pause";}
+    hint = isPaused?"Resume":"Pause";
     document.getElementById("pauseButton").innerHTML = hint;
 }
 
@@ -190,7 +189,7 @@ const timeSpanPerUpdate = 5000; //milliseconds
 
 var nowTime;
 var dataBuf = [];
-var lastPoint;
+var lastPoint, tmpTime;
 var lookback;
 var ptIndex = 0;
 var myIntervalStub;
@@ -206,7 +205,8 @@ function updatePlot() {
             ptIndex++;
             // Add points to buffer
             lastPoint = ipv4GetLeadOctal(dataPts[ptIndex][_ipv4Id]);
-            dataBuf.push([nowTime, lastPoint, dataPts[ptIndex]]);
+            tmpTime = new Date(dataPts[ptIndex][_dtInt] * 1000);
+            dataBuf.push([tmpTime, lastPoint, dataPts[ptIndex]]);
         }
 
         dataBuf = render(dataBuf, nowTime, lookback, graphVars);
