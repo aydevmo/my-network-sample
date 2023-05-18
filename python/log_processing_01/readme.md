@@ -8,6 +8,13 @@ Live SQL query powered by sql.js</a>
   
 ---
   
+Try this Scatter Plot Replay:  
+<a href="https://aydevmo.github.io/my-network-sample/python/log_processing_01/step33_d3_charts/step33_d3_01_scatter_replay.html" target="_blank">
+Scatter Plot Replay powered by d3.js and sql.js</a>  
+Each data point represents a log entry. Mouse over on the data point to see tool tip.   
+  
+---
+  
 Click the following link to see my data analysis:  
 [step51_data_analysis.ipynb](https://github.com/aydevmo/my-network-sample/blob/main/python/log_processing_01/step51_data_analysis.ipynb)  
   
