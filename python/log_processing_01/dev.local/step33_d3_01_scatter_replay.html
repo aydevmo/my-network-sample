@@ -7,18 +7,45 @@
 	<title>Scatter Chart Replay</title>
 	<script src="../sql.js/dist/sql-wasm.js"></script>
     <script src="../include/d3.js/d3.v7.min.js"></script>
+    <!--  https://github.com/scotthmurray/d3-book/blob/master/chapter_10/14_div_tooltip.html  -->
+    <style type="text/css">
+        #tooltip {
+            position: absolute;
+            width: 200px;
+            height: auto;
+            padding: 10px;
+            background-color: white;
+            -webkit-border-radius: 10px;
+            -moz-border-radius: 10px;
+            border-radius: 10px;
+            -webkit-box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+            -moz-box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+            box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+            pointer-events: none;
+        }
+        
+        #tooltip.hidden {
+            display: none;
+        }
+        
+        #tooltip p {
+            margin: 0;
+            font-family: sans-serif;
+            font-size: 16px;
+            line-height: 20px;
+        }
+    </style>
 </head>
 
 <body>
     <h3>Scatter Chart Replay</h3>
     <br><br>
-    <div id="board"></div>
-    <div id="timebox"></div>
+    <pre id="board"></pre>
+    <pre id="timebox"></pre>
     &nbsp;&nbsp;<button id="pauseButton" onclick="togglePause();">Pause</button>
+    <pre>Click the Pause button and mouse over on the data points to see tooltip. </pre>
 
-    <!--<div id="tooltip" style="position:absolute;width:200px;height:auto;border-radius:10px;-->
-    <div id="tooltip" style="width:200px;height:auto;border-radius:10px;
-        box-shadow:4px 4px 10px;padding:10px;background-color:white;">
+    <div id="tooltip" class="hidden">
         <p><span>Log Id: </span><span id="bxLogId">555</span></p>
         <p><span>Protocol: </span><span id="bxProto">tcp</span></p>
         <p><span>Source IP: </span><span id="bxSrcIp">8.8.8.8</span></p>
@@ -27,11 +54,10 @@
         <p><span>Country: </span><span id="bxCountry">US</span></p>
         <p><span>City: </span><span id="bxCity">New York</span></p>
         <p><span>Date Time: </span><span id="bxDt">Date Time</span></p>
-</div>
+    </div>
 
     <pre id='error'></pre>
 	<pre id='result'></pre>
-	
 
 	<script>
 "use strict";
@@ -39,16 +65,21 @@ const _logId = 0, _createdOn = 1, _logNum = 2, _protocol = 3, _source = 4;
 const _dest = 5, _destPort = 6, _occur = 7, _minutes = 8, _ipv4Id = 9;
 const _ipv4Str = 10, _hostname = 11, _latitude = 12, _longitude = 13, _countryCode = 14;
 const _country = 15, _city = 16, _dtInt = 17;
-const _width = 800, _height = 400, _radius = 10;
 const _interval = 5; //seconds
 const _x = 0, _y = 1, _data = 2;
-const _numPoints = 50;
+const _numPoints = 6000;  //number of data points
+var _width = 800, _height = 400, _radius = 10;
 
 var db;
 var svg;
 var result = '', error = '';
 var dataPts;
 var isPaused = false;
+
+//set tag innerHTML value (text in a box)
+function bxSet(id, value){
+    document.getElementById(id).innerHTML = value;
+}
 
 function togglePause(){
     isPaused = !isPaused;
@@ -72,12 +103,11 @@ async function loadDB(){
     dataPts = result[0]['values'];
     //document.getElementById('result').innerHTML = JSON.stringify(dataPts, null, '  ');
     //document.getElementById('result').innerHTML = JSON.stringify(result, null, '  ');
-    
 	document.getElementById('error').innerHTML = error;
 }
 
 //for testing only
-function drawPlot(){
+function drawTestPlot(){
     svg = d3.select("#board")
             .append("svg")
             .attr("width", _width)
@@ -123,7 +153,7 @@ function render(data, currTime, lookback, graphVars){
 
     const [graph, barGroup, xScaleGroup, yScaleGroup] = graphVars;
 
-    const radius = graph.attr('width')/100.0;
+    _radius = graph.attr('width')/100.0;
 
     const xValues = data.map(a => a[_x]);
     const yValues = data.map(a => a[_y]);
@@ -138,12 +168,13 @@ function render(data, currTime, lookback, graphVars){
                     .range([room_for_axis + 10, graph.attr('width')]); 
 
     const yScale = d3.scaleLinear()
-                     .domain([miny-range * 0.01, maxy + range * 0.01])
+                     //.domain([miny-range * 0.01, maxy + range * 0.01])
+                     .domain([0, 255])
                      .range([graph.attr('height')-room_for_axis, 0]);
 
-    const colorScale = d3.scaleTime()
-                    .domain([lookback, currTime])
-                    .range(['blue', 'red']); 
+    // const colorScale = d3.scaleTime()
+    //                 .domain([lookback, currTime])
+    //                 .range(['blue', 'red']); 
 
     const toRemove = data.filter(a => a[_x] < lookback);
     barGroup.selectAll("circle")
@@ -164,11 +195,12 @@ function render(data, currTime, lookback, graphVars){
         .attr("cy", function(d) {
                 return yScale(d[_y]);
        })
-        .attr("r", radius)
-        .attr("fill", d => ipv4IntToColor(d[_data][_ipv4Id]));
-
+        .attr("r", _radius)
+        .attr("fill", d => ipv4IntToColor(d[_data][_ipv4Id]))
         //great trick!
         //.attr("fill", function(d){ return colorScale(d[0])});
+        .on("mouseover", (evt, d) => bxTip(evt, d[_data]))
+        .on("mouseout", () => bxHideTip());
        
     var x_axis = d3.axisBottom().scale(xScale);
     xScaleGroup.attr('transform', 'translate(0,' + (graph.attr('height') - room_for_axis) + ')')
@@ -182,8 +214,9 @@ function render(data, currTime, lookback, graphVars){
 }
 
 const lookback_s = 30;  //seconds
-const width = document.getElementById('board').offsetWidth;
-const graphVars = initialize(width, width*0.4);
+//const width = document.getElementById('board').offsetWidth * 0.9;
+//const graphVars = initialize(width, width*0.4);
+var graphVars;
 const updateIntervalMs = 1000;  //milliseconds
 const timeSpanPerUpdate = 5000; //milliseconds
 
@@ -211,14 +244,18 @@ function updatePlot() {
 
         dataBuf = render(dataBuf, nowTime, lookback, graphVars);
 
-        document.getElementById('timebox').innerHTML = 'Time: ' + nowTime.toUTCString();
-        document.getElementById('error').innerHTML = 'buffer length: ' + dataBuf.length;
+        bxSet('timebox', 'Time: ' + nowTime.toUTCString() );
+        bxSet('error', 'Buffer Entry Count: ' + dataBuf.length);
     }
     if(ptIndex + 1 >= _numPoints){clearInterval(myIntervalStub);}
 }
 
 function initDrawing(){
     // initialize
+    _width = document.getElementById('board').offsetWidth * 0.9;
+    _height = _width * 0.4;
+    graphVars = initialize(_width, _height);
+
     nowTime = new Date(dataPts[0][_dtInt] * 1000);  //SQLite stores Date in seconds
     console.log("nowTime: " + nowTime.toDateString())
 
@@ -240,22 +277,41 @@ function ipv4GetLeadOctal(ipv4Int){
     return( Number(ipv4Int) >>> 24 );
 }
 
+function bxHideTip(){
+    d3.select("#tooltip").classed("hidden", true);
+}
+
 function bxTip(evt, d){
-    document.getElementById("bxLogId").innerHTML = d[_logId];
-    document.getElementById("bxProto").innerHTML = d[_protocol];
-    document.getElementById("bxSrcIp").innerHTML = d[_ipv4Str];
-    document.getElementById("bxDestPort").innerHTML = d[_destPort];
-    document.getElementById("bxCountry").innerHTML = d[_country];
-    document.getElementById("bxCity").innerHTML = d[_city];
-    document.getElementById("bxDt").innerHTML = d[_createdOn];
+    //https://github.com/scotthmurray/d3-book/blob/master/chapter_10/14_div_tooltip.html
+    //Get this bar's x/y values, then augment for the tooltip
+    var xPosition = parseFloat(evt.x);
+    var yPosition = parseFloat(evt.y);
+
+    //Update the tooltip position and value
+    d3.select("#tooltip")
+        .style("left", xPosition + "px")
+        .style("top", yPosition + "px")						
+        .select("#value")
+        .text(d);
+
+    //Show the tooltip
+    d3.select("#tooltip").classed("hidden", false);
+
+    bxSet("bxLogId", d[_logId]);
+    bxSet("bxProto", d[_protocol]);
+    bxSet("bxSrcIp", d[_ipv4Str]);
+    bxSet("bxDestPort", d[_destPort]);
+    bxSet("bxCountry", d[_country]);
+    bxSet("bxCity", d[_city]);
+    bxSet("bxDt", d[_createdOn]);
 }
 
 async function main(){
     await loadDB();
-    //drawPlot();
+    //drawTestPlot();
     //document.getElementById('result').innerHTML = JSON.stringify(dataPts, null, '  ');
     //dataPts[1][_ipv4Str] = '0.0.0.0';
-    document.getElementById('result').innerHTML = JSON.stringify(result, null, '  ');
+    //document.getElementById('result').innerHTML = JSON.stringify(result, null, '  ');
 
     initDrawing();
 }
