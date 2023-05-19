@@ -1,8 +1,8 @@
 # Network Related Sample Projects
   
-Try this live SQL query:  
-<a href="https://aydevmo.github.io/my-network-sample/python/log_processing_01/step31_js_01_realtime_sql_query.html" target="_blank">
-Live SQL query powered by sql.js</a>
+Try these JavaScript interactive pages:  
+<a href="https://aydevmo.github.io/my-network-sample/python/log_processing_01/interactive" target="_blank">
+Interactive Section</a>  
   
 Please see my recent Python sample at below, which processes Cisco ASA log, inserts location information, and performs data analysis in Jupyter Notebook.  
 <a href="https://github.com/aydevmo/my-network-sample/tree/main/python/log_processing_01" target="_blank">
