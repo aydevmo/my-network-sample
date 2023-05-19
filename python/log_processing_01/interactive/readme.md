@@ -19,5 +19,5 @@ Scatter Plot with Range control powered by d3.js and sql.js</a>
 
 ---
   
-Go back to project home:  
+Go back to project source:  
 <a href="https://github.com/aydevmo/my-network-sample/tree/main/python/log_processing_01" target="_blank">IPv4 Port Scan Source Addresses Processing</a>
