@@ -1,0 +1,358 @@
+<!doctype html>
+<!--  Reference: https://wil.yegelwel.com/d3-realtime/  -->
+<html>
+
+<head>
+	<meta charset="utf8">
+	<title>Scatter Chart Range</title>
+	<script src="../sql.js/dist/sql-wasm.js"></script>
+    <script src="../include/d3.js/d3.v7.min.js"></script>
+    <!--  https://github.com/scotthmurray/d3-book/blob/master/chapter_10/14_div_tooltip.html  -->
+    <style type="text/css">
+        #tooltip {
+            position: absolute;
+            width: 200px;
+            height: auto;
+            padding: 10px;
+            background-color: white;
+            -webkit-border-radius: 10px;
+            -moz-border-radius: 10px;
+            border-radius: 10px;
+            -webkit-box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+            -moz-box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+            box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+            pointer-events: none;
+        }
+        
+        #tooltip.hidden {
+            display: none;
+        }
+        
+        #tooltip p {
+            margin: 0;
+            font-family: sans-serif;
+            font-size: 16px;
+            line-height: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <h3>Scatter Chart Range</h3>
+    <br><br>
+    <pre id="board"></pre>
+    <pre id="timebox"></pre>
+
+    <pre id="preStart"></pre>
+    
+    <label for="rngStart">Start Time</label>
+    <input type="range" id="rngStart" style="width:400px;"
+    min="0" max="180" value="0" 
+    oninput="bxSet('preStart', this.value);updatePlot();">
+
+
+
+    <pre>Click the Pause button  </pre>
+
+    <div id="tooltip" class="hidden">
+        <p><span>Log ID: </span><span id="bxLogId">555</span></p>
+        <p><span>Protocol: </span><span id="bxProto">tcp</span></p>
+        <p><span>Source IP: </span><span id="bxSrcIp">8.8.8.8</span></p>
+        <p><span>Dest IP: </span><span id="bxDestIp"></span></p>
+        <p><span>Dest Port: </span><span id="bxDestPort">80</span></p>
+        <p><span>Country: </span><span id="bxCountry">US</span></p>
+        <p><span>City: </span><span id="bxCity">New York</span></p>
+        <p><span>Date Time: </span><span id="bxDt">Date Time</span></p>
+    </div>
+
+    <pre id='error'></pre>
+	<pre id='result'></pre>
+
+	<script>
+"use strict";
+const _logId = 0, _createdOn = 1, _logNum = 2, _protocol = 3, _source = 4;
+const _dest = 5, _destPort = 6, _occur = 7, _minutes = 8, _ipv4Id = 9;
+const _ipv4Str = 10, _hostname = 11, _latitude = 12, _longitude = 13, _countryCode = 14;
+const _country = 15, _city = 16, _dtInt = 17;
+const _interval = 5; //seconds
+const _x = 0, _y = 1, _data = 2;
+const _numPoints = 6370;  //number of data points
+var _width = 800, _height = 400, _radius = 10;
+
+var db;
+var svg;
+var result = '', error = '';
+var dataPts;
+var bxHt = {};
+
+//set tag innerHTML value (text in a box)
+function bxSet(id, value){
+    document.getElementById(id).innerHTML = value;
+}
+
+async function loadDB(){
+    var sqlPromise = initSqlJs({
+    locateFile: file => `http://localhost:8000/python/log_processing_01/sql.js/dist/${file}`
+    });
+    var dataPromise = fetch("http://localhost:8000/python/log_processing_01/aydevmo_net_log_01.db").then(res => res.arrayBuffer());
+    var [SQL, buf] = await Promise.all([sqlPromise, dataPromise])
+    db = new SQL.Database(new Uint8Array(buf));
+
+    var sql = "select *, CAST(strftime('%s', created_on) AS INT) AS dt_int from log_records join hosts on log_records.source = hosts.ipv4_id limit " + _numPoints;
+    
+	try { result = db.exec(sql); }
+	catch (e) { error = e; }
+    dataPts = result[0]['values'];
+
+    document.getElementById('error').innerHTML = error;
+
+    buildHashTable();
+}
+
+//return seconds
+function roundSecondToMinute(seconds){
+    let datetime = new Date( seconds * 1000 );
+    let looseSec = datetime.getSeconds(); 
+    return(seconds - looseSec);
+}
+
+function buildHashTable(){
+    for(let i=0; i<_numPoints; i++){
+        let seconds = roundSecondToMinute( dataPts[i][_dtInt] );
+        if(! (seconds in bxHt)){ bxHt[seconds] = i; }
+    }
+}
+
+//https://stackoverflow.com/questions/34913675/how-to-iterate-keys-values-in-javascript
+//ECMAScript 2017
+function testHashTable(){
+    for (const [key, value] of Object.entries(bxHt)) {
+        console.log(key, value);
+    }
+}
+
+function getIdxBySeconds(seconds){
+    if(seconds in bxHt){  return(bxHt[seconds]);}
+    else{return (0);}
+}
+
+//for testing only
+function drawTestPlot(){
+    svg = d3.select("#board")
+            .append("svg")
+            .attr("width", _width)
+            .attr("height", _height);
+
+    svg.selectAll("circle")
+        .data(dataPts)
+        .enter()
+        .append("circle")
+        .attr("cx", d => d[_logId]*20)
+        .attr("cy", d => d[_logId]*20)
+        .attr("r", _radius)
+        .attr("fill", d => ipv4IntToColor(d[_ipv4Id]))
+        .on("mouseover", (evt, d) => bxTip(evt, d));
+    
+        svg.selectAll("text")
+        .data(dataPts)
+        .enter()
+        .append("text")
+        .attr("x", d => d[_logId]*20)
+        .attr("y", d => d[_logId]*20)
+        .text(d => d[_ipv4Str]);
+}
+
+function initialize(width, height){
+    var graph = d3.select("#board")
+              .append("svg")
+              .attr("width", width)
+              .attr("height", height);
+
+    var barGroup = graph.append("g");
+
+    var xScaleGroup = graph.append("g");
+
+    var yScaleGroup = graph.append("g");
+
+    return [graph, barGroup, xScaleGroup, yScaleGroup]
+}
+
+
+function render(data, currTime, lookahead, graphVars){
+    const room_for_axis = 40;
+
+    const [graph, barGroup, xScaleGroup, yScaleGroup] = graphVars;
+
+    _radius = graph.attr('width')/100.0;
+
+    const xValues = data.map(a => a[_x]);
+    const yValues = data.map(a => a[_y]);
+
+    const miny = d3.min(yValues);
+    const maxy = d3.max(yValues);
+    const range = maxy - miny;
+
+    const xScale = d3.scaleTime()
+                    .domain([currTime, lookahead])
+                    // Add a little extra room for y axis
+                    .range([room_for_axis + 10, graph.attr('width')]); 
+
+    const yScale = d3.scaleLinear()
+                     //.domain([miny-range * 0.01, maxy + range * 0.01])
+                     .domain([0, 255])
+                     .range([graph.attr('height')-room_for_axis, 0]);
+
+    const toRemove = data.filter(a => a[_x] > lookahead || a[_x] < currTime);
+    barGroup.selectAll("circle")
+            .data(toRemove)
+            .exit()
+            .remove();
+
+    data = data.filter(a => a[_x] > currTime);
+    barGroup.selectAll("g")
+            .data(data)
+            .enter()
+            .append("circle");
+    
+    barGroup.selectAll("circle")
+        .attr('cx', function(d){
+            return xScale(d[_x]);
+        })
+        .attr("cy", function(d) {
+                return yScale(d[_y]);
+       })
+        .attr("r", _radius)
+        .attr("fill", d => ipv4IntToColor(d[_data][_ipv4Id]))
+        //great trick!
+        //.attr("fill", function(d){ return colorScale(d[0])});
+        .on("mouseover", (evt, d) => bxTip(evt, d[_data]))
+        .on("mouseout", () => bxHideTip());
+       
+    var x_axis = d3.axisBottom().scale(xScale);
+    xScaleGroup.attr('transform', 'translate(0,' + (graph.attr('height') - room_for_axis) + ')')
+              .call(x_axis);
+
+    var y_axis = d3.axisLeft().scale(yScale)
+    yScaleGroup.attr('transform', 'translate(' + room_for_axis + ',0)').call(y_axis);
+
+    return data;
+    
+}
+
+//const lookback_s = 30;  //seconds
+var lookahead_s = 30; //seconds
+var graphVars;
+const updateIntervalMs = 1000;  //milliseconds
+const timeSpanPerUpdate = 5000; //milliseconds
+
+var nowTime;
+var fstSec;  //the first second
+var fstMinInS;  //the first minute (in seconds)
+var dataBuf = [];
+var lastPoint, tmpTime;
+//var lookback;
+var lookahead;
+var ptIndex = 0;
+var myIntervalStub;
+
+function updatePlot() {
+    let mins = Number(document.getElementById('rngStart').value);
+    let nowSecs = fstMinInS + mins*60;
+    ptIndex = getIdxBySeconds(nowSecs);
+
+    //nowTime = new Date(nowTime.getTime() + timeSpanPerUpdate);
+    //lookback = new Date(nowTime.getTime() - lookback_s * 1000);
+
+    nowTime = new Date( nowSecs * 1000 );
+    lookahead = new Date(nowTime.getTime() + lookahead_s * 1000);
+
+    while(( ptIndex + 1 < _numPoints ) &&  //Max index is length minus one. Check this first.
+        dataPts[ptIndex + 1][_dtInt] * 1000 <= lookahead.getTime() ){   
+        ptIndex++;
+        // Add points to buffer
+        lastPoint = ipv4GetLeadOctal(dataPts[ptIndex][_ipv4Id]);
+        tmpTime = new Date(dataPts[ptIndex][_dtInt] * 1000);
+        dataBuf.push([tmpTime, lastPoint, dataPts[ptIndex]]);
+    }
+
+    //dataBuf = render(dataBuf, nowTime, lookback, graphVars);
+    dataBuf = render(dataBuf, nowTime, lookahead, graphVars);
+
+    bxSet('timebox', 'Time: ' + nowTime.toUTCString() );
+    bxSet('error', 'Buffer Entry Count: ' + dataBuf.length);
+}
+
+function initDrawing(){
+    // initialize
+    _width = document.getElementById('board').offsetWidth * 0.9;
+    _height = _width * 0.4;
+    graphVars = initialize(_width, _height);
+
+    fstSec = dataPts[0][_dtInt];
+    fstMinInS = roundSecondToMinute(fstSec);
+
+    nowTime = new Date(fstSec * 1000);  //SQLite stores Date in seconds
+    console.log("initDrawing() nowTime: " + nowTime.toDateString())
+
+    lastPoint = ipv4GetLeadOctal(dataPts[0][_ipv4Id]);
+    dataBuf.push([nowTime, lastPoint, dataPts[0]]);
+
+    lookahead = new Date(nowTime.getTime() + lookahead_s * 1000);
+
+    render(dataBuf, nowTime, lookahead, graphVars);
+
+}
+
+function ipv4IntToColor(ipv4Int){
+    return( '#' + (Number(ipv4Int) >>> 8).toString(16) );
+}
+
+function ipv4GetLeadOctal(ipv4Int){
+    return( Number(ipv4Int) >>> 24 );
+}
+
+function bxHideTip(){
+    d3.select("#tooltip").classed("hidden", true);
+}
+
+function bxTip(evt, d){
+    //https://github.com/scotthmurray/d3-book/blob/master/chapter_10/14_div_tooltip.html
+    //Get this bar's x/y values, then augment for the tooltip
+    var xPosition = parseFloat(evt.x);
+    var yPosition = parseFloat(evt.y);
+
+    //Update the tooltip position and value
+    d3.select("#tooltip")
+        .style("left", xPosition + "px")
+        .style("top", yPosition + "px")						
+        .select("#value")
+        .text(d);
+
+    //Show the tooltip
+    d3.select("#tooltip").classed("hidden", false);
+
+    bxSet("bxLogId", d[_logId]);
+    bxSet("bxProto", d[_protocol]);
+    bxSet("bxSrcIp", d[_ipv4Str]);
+    bxSet("bxDestPort", d[_destPort]);
+    bxSet("bxCountry", d[_country]);
+    bxSet("bxCity", d[_city]);
+    bxSet("bxDt", d[_createdOn]);
+}
+
+async function main(){
+    await loadDB();
+    testHashTable();
+    //drawTestPlot();
+    //document.getElementById('result').innerHTML = JSON.stringify(dataPts, null, '  ');
+    //dataPts[1][_ipv4Str] = '0.0.0.0';
+    //document.getElementById('result').innerHTML = JSON.stringify(result, null, '  ');
+
+    initDrawing();
+}
+
+main();
+
+
+	</script>
+</body>
