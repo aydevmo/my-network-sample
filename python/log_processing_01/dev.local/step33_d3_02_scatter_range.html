@@ -40,17 +40,16 @@
 <body>
     <h3>Scatter Chart Range</h3>
     <br><br>
-    <pre id="board"></pre>
-    <pre id="timebox"></pre>
-
-    <pre id="preStart"></pre>
+    <div id="board"></div>
     
-    <label for="rngStart">Start Time</label>
+    <label for="rngStart">Log Start Time</label>
     <input type="range" id="rngStart" style="width:400px;"
-    min="0" max="180" value="0" 
-    oninput="bxSet('preStart', this.value);updatePlot();">
-
-    <pre>Change start time.  </pre>
+        min="0" max="184" value="90" 
+        oninput="updatePlot();">
+    <!--  oninput="bxSet('preStart', this.value);updatePlot();">  -->
+    <pre id="timebox"></pre>
+    <pre id="preStart"></pre>
+    <pre>Drag (or mouse wheel on) the range control to change log start time. Mouse over on the data point to see tooltip.  </pre>
 
     <div id="tooltip" class="hidden">
         <p><span>Log ID: </span><span id="bxLogId">555</span></p>
@@ -255,21 +254,33 @@ function updatePlot() {
     lookahead = new Date(nowTime.getTime() + lookahead_s * 1000);
 
     //Brutely reset the buffer as some unknown issues present. Revisit later. 
+    //Potentially the d3.js exit() function doesn't catch up with update.
     dataBuf = [];
 
-    while(( ptIndex + 1 < _numPoints ) &&  //Max index is length minus one. Check this first.
-        dataPts[ptIndex + 1][_dtInt] * 1000 <= lookahead.getTime() ){   
-        ptIndex++;
+    //console.log('ptIndex: ' + ptIndex)
+
+    while(( ptIndex < _numPoints ) &&  //Max index is length minus one. Check this first.
+        dataPts[ptIndex][_dtInt] * 1000 <= lookahead.getTime() ){   
         // Add points to buffer
         lastPoint = ipv4GetLeadOctal(dataPts[ptIndex][_ipv4Id]);
         tmpTime = new Date(dataPts[ptIndex][_dtInt] * 1000);
         dataBuf.push([tmpTime, lastPoint, dataPts[ptIndex]]);
+        ptIndex++;
     }
 
     dataBuf = render(dataBuf, nowTime, lookahead, graphVars);
 
     bxSet('timebox', 'Time: ' + nowTime.toUTCString() );
     bxSet('error', 'Buffer Entry Count: ' + dataBuf.length);
+}
+
+function bxZoom(event){
+    //console.log(event.deltaY);  //upward: negative. downward: positive.
+    let mins = Number(document.getElementById('rngStart').value);
+    if(event.deltaY < 0){ mins--; }
+    else{ mins++; }
+    document.getElementById('rngStart').value = mins;
+    updatePlot();
 }
 
 function initDrawing(){
@@ -282,7 +293,7 @@ function initDrawing(){
     fstMinInS = roundSecondToMinute(fstSec);
 
     nowTime = new Date(fstSec * 1000);  //SQLite stores Date in seconds
-    console.log("initDrawing() nowTime: " + nowTime.toDateString())
+    //console.log("initDrawing() nowTime: " + nowTime.toUTCString());
 
     lastPoint = ipv4GetLeadOctal(dataPts[0][_ipv4Id]);
     dataBuf.push([nowTime, lastPoint, dataPts[0]]);
@@ -290,6 +301,9 @@ function initDrawing(){
     lookahead = new Date(nowTime.getTime() + lookahead_s * 1000);
 
     render(dataBuf, nowTime, lookahead, graphVars);
+
+    const el = document.getElementById("rngStart");
+    el.onwheel = bxZoom;
 }
 
 function ipv4IntToColor(ipv4Int){
@@ -307,7 +321,13 @@ function bxHideTip(){
 function bxTip(evt, d){
     //https://github.com/scotthmurray/d3-book/blob/master/chapter_10/14_div_tooltip.html
     //Get this bar's x/y values, then augment for the tooltip
-    var xPosition = parseFloat(evt.x);
+
+    var xPosition;
+    if(evt.x < _width * 0.8){
+        xPosition = parseFloat(evt.x) + 10;
+    }else{
+        xPosition = parseFloat(evt.x) - 230;
+    }
     var yPosition = parseFloat(evt.y);
 
     //Update the tooltip position and value
@@ -331,7 +351,7 @@ function bxTip(evt, d){
 
 async function main(){
     await loadDB();
-    testHashTable();
+    //testHashTable();
     //drawTestPlot();
 
     initDrawing();
