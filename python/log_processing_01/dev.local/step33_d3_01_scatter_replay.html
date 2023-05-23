@@ -228,8 +228,8 @@ var myIntervalStub;
 function updatePlot() {
     if(! isPaused){
         // Move time forward
-        nowTime = new Date(nowTime.getTime() + timeSpanPerUpdate);
-        lookback = new Date(nowTime.getTime() - lookback_s * 1000);
+        nowTime = new Date(nowTime.getTime() + timeSpanPerUpdate);  //nowTime is moved forward (T-old => T-new)
+        lookback = new Date(nowTime.getTime() - lookback_s * 1000); //lookback is updated based on T-new. 
 
         while(( ptIndex + 1 < _numPoints ) &&  //Max index is length minus one. Check this first.
             dataPts[ptIndex + 1][_dtInt] * 1000 <= nowTime.getTime() ){   
