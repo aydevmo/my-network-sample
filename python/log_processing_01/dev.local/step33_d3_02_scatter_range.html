@@ -253,7 +253,7 @@ function updatePlot() {
     nowTime = new Date( nowSecs * 1000 );
     lookahead = new Date(nowTime.getTime() + lookahead_s * 1000);
 
-    //Brutely reset the buffer as some unknown issues present. Revisit later. 
+    //Brutally reset the buffer as some unknown issues present. Revisit later. 
     //Potentially the d3.js exit() function doesn't catch up with update.
     dataBuf = [];
 
